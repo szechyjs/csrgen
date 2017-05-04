@@ -10,6 +10,7 @@ import (
 	"fmt"
 	"io"
 	"io/ioutil"
+	"net"
 	"os"
 	"regexp"
 	"strings"
@@ -173,6 +174,7 @@ func main() {
 	}
 
 	dns := []string{}
+	ips := []net.IP{}
 	if validHost(answers.Hostname) {
 		parts := strings.Split(answers.Hostname, ".")
 		dnsOptions := []string{
@@ -187,6 +189,25 @@ func main() {
 			Options: dnsOptions,
 		}
 		survey.AskOne(dnsPrompt, &dns, nil)
+
+		moreIPs := true
+		for moreIPs {
+			ipStr := ""
+			ipPrompt := &survey.Input{
+				Message: "IP Address SAN",
+				Help:    "Add IP addresses to SANs one at a time. Add blank entry when done.",
+			}
+			survey.AskOne(ipPrompt, &ipStr, nil)
+
+			moreIPs = false
+			if len(ipStr) > 0 {
+				ip := net.ParseIP(ipStr)
+				if ip != nil {
+					ips = append(ips, ip)
+					moreIPs = true
+				}
+			}
+		}
 	}
 
 	subj := pkix.Name{
@@ -202,6 +223,7 @@ func main() {
 		Subject:            subj,
 		SignatureAlgorithm: x509.SHA256WithRSA,
 		DNSNames:           dns,
+		IPAddresses:        ips,
 	}
 
 	keyBytes, _ := rsa.GenerateKey(rand.Reader, 2048)
