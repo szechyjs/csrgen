@@ -187,6 +187,7 @@ func main() {
 			Message: "Subject Alternative Names (SAN):",
 			Help:    "Modern browsers only validate the URL aginst this list, be sure to include all applicable DNS entries.",
 			Options: dnsOptions,
+			Default: []string{answers.Hostname},
 		}
 		survey.AskOne(dnsPrompt, &dns, nil)
 
