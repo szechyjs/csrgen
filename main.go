@@ -13,6 +13,7 @@ import (
 	"net"
 	"os"
 	"regexp"
+	"strconv"
 	"strings"
 
 	yaml "gopkg.in/yaml.v2"
@@ -227,7 +228,16 @@ func main() {
 		IPAddresses:        ips,
 	}
 
-	keyBytes, _ := rsa.GenerateKey(rand.Reader, 2048)
+	keySize := ""
+	keyPrompt := &survey.Select{
+		Message: "Select a key size",
+		Options: []string{"1024", "2048", "4096"},
+		Default: "2048",
+	}
+	survey.AskOne(keyPrompt, &keySize, nil)
+	keyInt, _ := strconv.Atoi(keySize)
+
+	keyBytes, _ := rsa.GenerateKey(rand.Reader, keyInt)
 
 	csrBytes, _ := x509.CreateCertificateRequest(rand.Reader, &template, keyBytes)
 
