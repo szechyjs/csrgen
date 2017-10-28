@@ -7,6 +7,7 @@ import (
 	"crypto/x509/pkix"
 	"encoding/pem"
 	"errors"
+	"flag"
 	"fmt"
 	"io"
 	"io/ioutil"
@@ -147,7 +148,45 @@ func validHost(host string) bool {
 	return false
 }
 
+func printCSR(csr x509.CertificateRequest) {
+	fmt.Printf("\n")
+	if len(csr.Subject.Country[0]) > 0 {
+		fmt.Printf("Country: %s\n", csr.Subject.Country[0])
+	}
+	if len(csr.Subject.Province[0]) > 0 {
+		fmt.Printf("State/Province: %s\n", csr.Subject.Province[0])
+	}
+	if len(csr.Subject.Locality[0]) > 0 {
+		fmt.Printf("Locality: %s\n", csr.Subject.Locality[0])
+	}
+	if len(csr.Subject.Organization[0]) > 0 {
+		fmt.Printf("Organization: %s\n", csr.Subject.Organization[0])
+	}
+	if len(csr.Subject.OrganizationalUnit[0]) > 0 {
+		fmt.Printf("Organizatonal Unit : %s\n", csr.Subject.OrganizationalUnit[0])
+	}
+	if len(csr.Subject.CommonName) > 0 {
+		fmt.Printf("Common Name: %s\n", csr.Subject.CommonName)
+	}
+	if len(csr.DNSNames) > 0 || len(csr.IPAddresses) > 0 {
+		fmt.Println("\nSubject Alternative Names")
+		for _, dns := range csr.DNSNames {
+			fmt.Printf("DNS Name: %s\n", dns)
+		}
+		for _, ip := range csr.IPAddresses {
+			fmt.Printf("IP Address: %s\n", ip)
+		}
+	}
+}
+
+var keyFile string
+
+func init() {
+	flag.StringVar(&keyFile, "key", "", "Existing key file")
+}
+
 func main() {
+	flag.Parse()
 
 	prefs := Preferences{}
 
@@ -172,6 +211,9 @@ func main() {
 	}
 	if answers.Locality == "-" {
 		answers.Locality = ""
+	}
+	if answers.OrganizationalUnit == "-" {
+		answers.OrganizationalUnit = ""
 	}
 
 	dns := []string{}
@@ -228,16 +270,35 @@ func main() {
 		IPAddresses:        ips,
 	}
 
-	keySize := ""
-	keyPrompt := &survey.Select{
-		Message: "Select a key size",
-		Options: []string{"1024", "2048", "4096"},
-		Default: "2048",
-	}
-	survey.AskOne(keyPrompt, &keySize, nil)
-	keyInt, _ := strconv.Atoi(keySize)
+	printCSR(template)
 
-	keyBytes, _ := rsa.GenerateKey(rand.Reader, keyInt)
+	var keyBytes *rsa.PrivateKey
+	if keyFile != "" {
+		pemBytes, err1 := ioutil.ReadFile(keyFile)
+		if err1 != nil {
+			panic(err)
+		}
+		block, _ := pem.Decode(pemBytes)
+		if block == nil {
+			panic(errors.New("no PEM block found"))
+		}
+		fmt.Printf("Block Type: %s\n", block.Type)
+		keyBytes, err1 = x509.ParsePKCS1PrivateKey(block.Bytes)
+		if err1 != nil {
+			panic(err1)
+		}
+	} else {
+		keySize := ""
+		keyPrompt := &survey.Select{
+			Message: "Select a key size",
+			Options: []string{"1024", "2048", "4096"},
+			Default: "2048",
+		}
+		survey.AskOne(keyPrompt, &keySize, nil)
+		keyInt, _ := strconv.Atoi(keySize)
+
+		keyBytes, _ = rsa.GenerateKey(rand.Reader, keyInt)
+	}
 
 	csrBytes, _ := x509.CreateCertificateRequest(rand.Reader, &template, keyBytes)
 
