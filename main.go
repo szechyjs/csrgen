@@ -204,8 +204,8 @@ func init() {
 }
 
 func main() {
-    fmt.Println("csrgen  Copyright (C) 2017  Jared Szechy")
-    fmt.Println("This program comes with ABSOLUTELY NO WARRANTY")
+	fmt.Println("csrgen  Copyright (C) 2017  Jared Szechy")
+	fmt.Println("This program comes with ABSOLUTELY NO WARRANTY")
 
 	flag.Parse()
 
@@ -254,6 +254,22 @@ func main() {
 			Default: []string{answers.Hostname},
 		}
 		survey.AskOne(dnsPrompt, &dns, nil)
+
+		moreDNS := true
+		for moreDNS {
+			dnsStr := ""
+			adlDNSPrompt := &survey.Input{
+				Message: "Additional Subject Alternative Names (SAN):",
+				Help:    "Add blank entry when done.",
+			}
+			survey.AskOne(adlDNSPrompt, &dnsStr, nil)
+
+			moreDNS = false
+			if len(dnsStr) > 0 {
+				dns = append(dns, dnsStr)
+				moreDNS = true
+			}
+		}
 
 		moreIPs := true
 		for moreIPs {
