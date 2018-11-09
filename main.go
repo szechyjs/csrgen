@@ -168,19 +168,19 @@ func validHost(host string) bool {
 
 func printCSR(csr x509.CertificateRequest) {
 	fmt.Printf("\n")
-	if len(csr.Subject.Country[0]) > 0 {
+	if csr.Subject.Country != nil && len(csr.Subject.Country[0]) > 0 {
 		fmt.Printf("Country: %s\n", csr.Subject.Country[0])
 	}
-	if len(csr.Subject.Province[0]) > 0 {
+	if csr.Subject.Province != nil && len(csr.Subject.Province[0]) > 0 {
 		fmt.Printf("State/Province: %s\n", csr.Subject.Province[0])
 	}
-	if len(csr.Subject.Locality[0]) > 0 {
+	if csr.Subject.Locality != nil && len(csr.Subject.Locality[0]) > 0 {
 		fmt.Printf("Locality: %s\n", csr.Subject.Locality[0])
 	}
-	if len(csr.Subject.Organization[0]) > 0 {
+	if csr.Subject.Organization != nil && len(csr.Subject.Organization[0]) > 0 {
 		fmt.Printf("Organization: %s\n", csr.Subject.Organization[0])
 	}
-	if len(csr.Subject.OrganizationalUnit[0]) > 0 {
+	if csr.Subject.OrganizationalUnit != nil && len(csr.Subject.OrganizationalUnit[0]) > 0 {
 		fmt.Printf("Organizatonal Unit : %s\n", csr.Subject.OrganizationalUnit[0])
 	}
 	if len(csr.Subject.CommonName) > 0 {
@@ -225,16 +225,6 @@ func main() {
 	if err != nil {
 		fmt.Println(err.Error())
 		return
-	}
-
-	if answers.Province == "-" {
-		answers.Province = ""
-	}
-	if answers.Locality == "-" {
-		answers.Locality = ""
-	}
-	if answers.OrganizationalUnit == "-" {
-		answers.OrganizationalUnit = ""
 	}
 
 	dns := []string{}
@@ -292,12 +282,20 @@ func main() {
 	}
 
 	subj := pkix.Name{
-		CommonName:         answers.Hostname,
-		Country:            []string{answers.Country},
-		Province:           []string{answers.Province},
-		Locality:           []string{answers.Locality},
-		Organization:       []string{answers.Organization},
-		OrganizationalUnit: []string{answers.OrganizationalUnit},
+		CommonName: answers.Hostname,
+		Country:    []string{answers.Country},
+	}
+	if answers.Province != "-" {
+		subj.Province = []string{answers.Province}
+	}
+	if answers.Locality != "-" {
+		subj.Locality = []string{answers.Locality}
+	}
+	if answers.Organization != "-" {
+		subj.Organization = []string{answers.Organization}
+	}
+	if answers.OrganizationalUnit != "-" {
+		subj.OrganizationalUnit = []string{answers.OrganizationalUnit}
 	}
 
 	template := x509.CertificateRequest{
