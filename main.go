@@ -37,7 +37,7 @@ import (
 
 	yaml "gopkg.in/yaml.v2"
 
-	"github.com/AlecAivazis/survey"
+	"gopkg.in/AlecAivazis/survey.v1"
 )
 
 // PrefValue -
