@@ -1,6 +1,6 @@
 /*
 csrgen - Tool for creating certificate signing requests (CSRs)
-Copyright (C) 2017 Jared Szechy
+Copyright (C) 2023 Jared Szechy
 
 This program is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
@@ -35,9 +35,8 @@ import (
 	"strconv"
 	"strings"
 
-	yaml "gopkg.in/yaml.v2"
-
-	"gopkg.in/AlecAivazis/survey.v1"
+	"github.com/AlecAivazis/survey/v2"
+	"gopkg.in/yaml.v3"
 )
 
 // PrefValue -
@@ -181,7 +180,7 @@ func printCSR(csr x509.CertificateRequest) {
 		fmt.Printf("Organization: %s\n", csr.Subject.Organization[0])
 	}
 	if csr.Subject.OrganizationalUnit != nil && len(csr.Subject.OrganizationalUnit[0]) > 0 {
-		fmt.Printf("Organizatonal Unit : %s\n", csr.Subject.OrganizationalUnit[0])
+		fmt.Printf("Organizational Unit : %s\n", csr.Subject.OrganizationalUnit[0])
 	}
 	if len(csr.Subject.CommonName) > 0 {
 		fmt.Printf("Common Name: %s\n", csr.Subject.CommonName)
@@ -204,7 +203,7 @@ func init() {
 }
 
 func main() {
-	fmt.Println("csrgen  Copyright (C) 2017  Jared Szechy")
+	fmt.Println("csrgen  Copyright (C) 2023  Jared Szechy")
 	fmt.Println("This program comes with ABSOLUTELY NO WARRANTY")
 
 	flag.Parse()
@@ -239,7 +238,7 @@ func main() {
 		}
 		dnsPrompt := &survey.MultiSelect{
 			Message: "Subject Alternative Names (SAN):",
-			Help:    "Modern browsers only validate the URL aginst this list, be sure to include all applicable DNS entries.",
+			Help:    "Modern browsers only validate the URL against this list, be sure to include all applicable DNS entries.",
 			Options: dnsOptions,
 			Default: []string{answers.Hostname},
 		}
